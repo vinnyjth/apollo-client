@@ -150,7 +150,7 @@ describe('client', () => {
           data: {},
           optimistic: {
             data: {},
-            mutationIds: {},
+            mutationIds: [],
           },
         },
       }
@@ -174,7 +174,7 @@ describe('client', () => {
           data: {},
           optimistic: {
             data: {},
-            mutationIds: {},
+            mutationIds: [],
           },
         },
       }
@@ -364,7 +364,7 @@ describe('client', () => {
         },
         optimistic: {
           data: {},
-          mutationIds: {},
+          mutationIds: [],
         },
       },
     };
