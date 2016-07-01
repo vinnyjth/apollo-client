@@ -261,7 +261,6 @@ export class QueryManager {
         });
 
         return result;
-
       });
   }
 
