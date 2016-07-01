@@ -290,7 +290,7 @@ export class QueryManager {
           }
         } else {
           const resultFromStore = readSelectionSetFromStore({
-            store: this.getApolloCacheData(),
+            store: this.getDataWithOptimisticResults(),
             rootId: queryStoreValue.query.id,
             selectionSet: queryStoreValue.query.selectionSet,
             variables: queryStoreValue.variables,
@@ -383,7 +383,7 @@ export class QueryManager {
           } else {
 
             const resultFromStore = readSelectionSetFromStore({
-              store: this.getApolloCacheData(),
+              store: this.getDataWithOptimisticResults(),
               rootId: queryStoreValue.query.id,
               selectionSet: queryStoreValue.query.selectionSet,
               variables: queryStoreValue.variables,
@@ -450,7 +450,7 @@ export class QueryManager {
     return this.store.getState()[this.reduxRootKey];
   }
 
-  public getApolloCacheData(): NormalizedCache {
+  public getDataWithOptimisticResults(): NormalizedCache {
     const state = this.getApolloState();
     return merge({}, state.data, state.optimistic.data) as NormalizedCache;
   }
@@ -673,7 +673,7 @@ export class QueryManager {
               // this will throw an error if there are missing fields in
               // the results if returnPartialData is false.
               resultFromStore = readSelectionSetFromStore({
-                store: this.getApolloCacheData(),
+                store: this.getDataWithOptimisticResults(),
                 rootId: querySS.id,
                 selectionSet: querySS.selectionSet,
                 variables,
