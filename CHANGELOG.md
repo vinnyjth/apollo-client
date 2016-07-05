@@ -4,6 +4,7 @@ Expect active development and potentially significant breaking changes in the `0
 
 ### vNEXT
 - Added support for query composition through fragments [Issue #338](https://github.com/apollostack/apollo-client/issues/338) and [PR #343](https://github.com/apollostack/apollo-client/pull/343)
+- Unified error handling for GraphQL errors and network errors. Both now result in rejected promises and passed as errors on observables through a new `ApolloError` type. This is a significant departure from the previous method of error handling which passed GraphQL errors in resolvers and `next` methods on subscriptions.
 
 ### v0.3.26
 
