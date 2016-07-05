@@ -1,3 +1,4 @@
+
 import {
   NetworkInterface,
   Request,
@@ -277,7 +278,7 @@ export class QueryManager {
         // XXX Currently, returning errors and data is exclusive because we
         // don't handle partial results
 
-        // If we have either a GraphQL error or a network error, we create a
+        // If we have either a GraphQL error or a network error, we create
         // an error and tell the observer about it.
         if (queryStoreValue.graphQLErrors || queryStoreValue.networkError) {
           const apolloError = new ApolloError({
@@ -320,7 +321,7 @@ export class QueryManager {
   public watchQuery(options: WatchQueryOptions, shouldSubscribe = true): ObservableQuery {
     // Call just to get errors synchronously
     getQueryDefinition(options.query);
-    const observableQuery = new ObservableQuery((observer) => {
+    const observableQuery = new ObservableQuery((observer: Observer<GraphQLResult>) => {
       const queryId = this.generateQueryId();
 
       const retQuerySubscription = {
@@ -357,7 +358,11 @@ export class QueryManager {
         this.addQuerySubscription(queryId, retQuerySubscription);
       }
 
-      this.startQuery(queryId, options, this.queryListenerForObserver(options, observer));
+      this.startQuery(
+        queryId,
+        options,
+        this.queryListenerForObserver(options, observer)
+      );
       return retQuerySubscription;
     });
 
