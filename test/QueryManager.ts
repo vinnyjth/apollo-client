@@ -2181,10 +2181,7 @@ describe('QueryManager', () => {
         data: {},
         mutations: {},
         queries: {},
-        optimistic: {
-          data: {},
-          mutationIds: [],
-        },
+        optimistic: [],
       };
 
       assert.deepEqual(currentState, expectedState);

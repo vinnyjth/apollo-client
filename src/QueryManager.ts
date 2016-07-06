@@ -7,11 +7,11 @@ import {
 import forOwn = require('lodash.forown');
 import assign = require('lodash.assign');
 import isEqual = require('lodash.isequal');
-import merge = require('lodash.merge');
 
 import {
   ApolloStore,
   Store,
+  getDataWithOptimisticResults,
 } from './store';
 
 import {
@@ -450,8 +450,7 @@ export class QueryManager {
   }
 
   public getDataWithOptimisticResults(): NormalizedCache {
-    const state = this.getApolloState();
-    return merge({}, state.data, state.optimistic.data) as NormalizedCache;
+    return getDataWithOptimisticResults(this.getApolloState());
   }
 
   public addQueryListener(queryId: string, listener: QueryListener) {
