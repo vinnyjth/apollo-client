@@ -25,6 +25,7 @@ import {
   getFragmentDefinitions,
   createFragmentMap,
   getOperationName,
+  addFragmentsToDocument,
 } from './queries/getFromAST';
 
 import {
@@ -35,9 +36,10 @@ import {
 import {
   GraphQLResult,
   Document,
+  FragmentDefinition,
 } from 'graphql';
 
-import { print } from 'graphql/language/printer';
+import { print } from 'graphql-tag/printer';
 
 import {
   readSelectionSetFromStore,
@@ -98,6 +100,7 @@ export interface WatchQueryOptions {
   forceFetch?: boolean;
   returnPartialData?: boolean;
   pollInterval?: number;
+  fragments?: FragmentDefinition[];
 }
 
 export type QueryListener = (queryStoreValue: QueryStoreValue) => void;
@@ -195,10 +198,12 @@ export class QueryManager {
     mutation,
     variables,
     resultBehaviors,
+    fragments = [],
   }: {
     mutation: Document,
     variables?: Object,
     resultBehaviors?: MutationBehavior[],
+    fragments?: FragmentDefinition[],
   }): Promise<GraphQLResult> {
     const mutationId = this.generateQueryId();
 
@@ -208,6 +213,11 @@ export class QueryManager {
       mutation = replaceOperationDefinition(mutation, mutationDef);
     }
     mutation = replaceOperationDefinition(mutation, mutationDef);
+
+    // Add the fragments that were passed in to the mutation document and then
+    // construct the fragment map.
+    mutation = addFragmentsToDocument(mutation, fragments);
+
     const mutationString = print(mutation);
     const queryFragmentMap = createFragmentMap(getFragmentDefinitions(mutation));
     const request = {
@@ -245,8 +255,10 @@ export class QueryManager {
 
   // Returns a query listener that will update the given observer based on the
   // results (or lack thereof) for a particular query.
-  public queryListenerForObserver(options: WatchQueryOptions,
-                                  observer: Observer<GraphQLResult>): QueryListener {
+  public queryListenerForObserver(
+    options: WatchQueryOptions,
+    observer: Observer<GraphQLResult>
+  ): QueryListener {
     return (queryStoreValue: QueryStoreValue) => {
       if (!queryStoreValue.loading || queryStoreValue.returnPartialData) {
         // XXX Currently, returning errors and data is exclusive because we
@@ -288,6 +300,10 @@ export class QueryManager {
   // but we don't want to keep track observables issued for the query method since those aren't
   // supposed to be refetched in the event of a store reset. Once we unify error handling for
   // network errors and non-network errors, the shouldSubscribe option will go away.
+
+  // The fragments option within WatchQueryOptions specifies a list of fragments that can be
+  // referenced by the query.
+  // These fragments are used to compose queries out of a bunch of fragments for UI components.
   public watchQuery(options: WatchQueryOptions, shouldSubscribe = true): ObservableQuery {
     // Call just to get errors synchronously
     getQueryDefinition(options.query);
@@ -490,14 +506,17 @@ export class QueryManager {
     });
   }
 
-  private fetchQueryOverInterface(queryId: string,
-                                  options: WatchQueryOptions,
-                                  network: NetworkInterface): Promise<GraphQLResult> {
+  private fetchQueryOverInterface(
+    queryId: string,
+    options: WatchQueryOptions,
+    network: NetworkInterface
+  ): Promise<GraphQLResult> {
     const {
       query,
       variables,
       forceFetch = false,
       returnPartialData = false,
+      fragments = [],
     } = options;
 
     let queryDef = getQueryDefinition(query);
@@ -505,9 +524,13 @@ export class QueryManager {
     if (this.queryTransformer) {
       queryDef = applyTransformerToOperation(queryDef, this.queryTransformer);
     }
-    const transformedQuery = replaceOperationDefinition(query, queryDef);
-    const queryString = print(transformedQuery);
+    let transformedQuery = replaceOperationDefinition(query, queryDef);
+
+    // Add the fragments passed in into the query and then create the fragment map
+    transformedQuery = addFragmentsToDocument(transformedQuery, fragments);
     const queryFragmentMap = createFragmentMap(getFragmentDefinitions(transformedQuery));
+
+    const queryString = print(transformedQuery);
 
     // Parse the query passed in -- this could also be done by a build plugin or tagged
     // template string

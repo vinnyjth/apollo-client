@@ -56,7 +56,7 @@ export class QueryScheduler {
   }
 
   public startPollingQuery(options: WatchQueryOptions, listener: QueryListener,
-                           queryId?: string): string {
+    queryId?: string): string {
     if (!queryId) {
       queryId = this.queryManager.generateQueryId();
     }

@@ -13,7 +13,7 @@ import {
   FragmentDefinition,
   OperationDefinition,
 } from 'graphql';
-import { print } from 'graphql/language/printer';
+import { print } from 'graphql-tag/printer';
 import gql from 'graphql-tag';
 import { assert } from 'chai';
 
@@ -95,8 +95,12 @@ describe('AST utility functions', () => {
       fragment moreAuthorDetails on Author {
         address
       }`;
-    const expectedResult: FragmentDefinition[] = [expectedDoc.definitions[0] as FragmentDefinition,
-                                                expectedDoc.definitions[1] as FragmentDefinition ];
+
+    const expectedResult: FragmentDefinition[] = [
+      expectedDoc.definitions[0] as FragmentDefinition,
+      expectedDoc.definitions[1] as FragmentDefinition,
+    ];
+
     const actualResult = getFragmentDefinitions(multipleFragmentDefinitions);
     assert.deepEqual(actualResult.map(print), expectedResult.map(print));
   });

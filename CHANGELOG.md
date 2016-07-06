@@ -4,6 +4,15 @@ Expect active development and potentially significant breaking changes in the `0
 
 ### vNEXT
 
+### v0.3.27
+
+- Removed dependency on `graphql` npm package, which was causing compilation errors in the React Native bundler. Issues [#261](https://github.com/apollostack/apollo-client/issues/261) [#163](https://github.com/apollostack/apollo-client/issues/163), [PR #357](https://github.com/apollostack/apollo-client/pull/357)
+- Added support for query composition through fragments [Issue #338](https://github.com/apollostack/apollo-client/issues/338) and [PR #343](https://github.com/apollostack/apollo-client/pull/343)
+
+### v0.3.26
+
+- Exposed a `printAST` method that is just `graphql-js`'s `print` method underneath [PR #337](https://github.com/apollostack/apollo-client/pull/337). With [PR #277](https://github.com/apollostack/apollo-client/pull/277), we moved to using the query AST as the representation of the query passed to the network interface. Unfortunately, this broke implementations of network interfaces. By exposing `printAST`, custom network interface implementations will be able to convert the query AST to a string easily.
+
 ### v0.3.25
 
 - Fix regression where options passed to query and watchQuery were modified if `shouldForceFetch` was false. [Issue #339](https://github.com/apollostack/apollo-client/issues/317) [PR #340](https://github.com/apollostack/apollo-client/pull/340)
