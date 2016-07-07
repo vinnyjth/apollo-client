@@ -5,6 +5,11 @@ Expect active development and potentially significant breaking changes in the `0
 ### vNEXT
 - moved refetch(), startPolling(), and stopPolling() methods from QuerySubscription to ObservableQuery [Issue #194] (https://github.com/apollostack/apollo-client/issues/194) and [PR #362] (https://github.com/apollostack/apollo-client/pull/362)
 
+### v0.3.28
+
+- Added missing export for the `addQueryMerging` method defined in the docs [here](http://docs.apollostack.com/apollo-client/network.html#addQueryMerging). [PR #364](https://github.com/apollostack/apollo-client/pull/364) and [Issue #363](https://github.com/apollostack/apollo-client/issues/363).
+- Made sure `diffSelectionSetAgainstStore` will return any available data from the local cache if `throwOnMissingField` is `false`, even if some fields in the query are missing. This also means that the `returnPartialData` option of `watchQuery` will return partial data if some fields are missing in the cache, rather than an empty object. [Issue #359](https://github.com/apollostack/apollo-client/issues/359) and [PR #360](https://github.com/apollostack/apollo-client/pull/360).
+
 ### v0.3.27
 
 - Removed dependency on `graphql` npm package, which was causing compilation errors in the React Native bundler. Issues [#261](https://github.com/apollostack/apollo-client/issues/261) [#163](https://github.com/apollostack/apollo-client/issues/163), [PR #357](https://github.com/apollostack/apollo-client/pull/357)
