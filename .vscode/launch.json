@@ -8,7 +8,9 @@
       "stopOnEntry": false,
       "args": ["lib/test/tests.js"],
       "cwd": "${workspaceRoot}",
-      "runtimeExecutable": null
+      "runtimeExecutable": null,
+      "sourceMaps": true,
+      "outDir": "${workspaceRoot}/lib"
     }
   ]
 }
