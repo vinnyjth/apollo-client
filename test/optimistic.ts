@@ -411,4 +411,120 @@ describe('optimistic mutation results', () => {
       });
     });
   });
+
+  describe('Multiple pending requests', () => {
+    const mutation = gql`
+      mutation createTodo {
+        # skipping arguments in the test since they don't matter
+        createTodo {
+          id
+          text
+          completed
+          __typename
+        }
+        __typename
+      }
+    `;
+
+    const firstMutationResult = {
+      data: {
+        __typename: 'Mutation',
+        createTodo: {
+          __typename: 'Todo',
+          id: '99',
+          text: 'First created with mutation.',
+          completed: true,
+        },
+      },
+    };
+
+    const firstOptimisticResponse = {
+      __typename: 'Mutation',
+      createTodo: {
+        __typename: 'Todo',
+        id: '99',
+        text: 'First optimistical generation',
+        completed: true,
+      },
+    };
+
+    const secondMutationResult = {
+      data: {
+        __typename: 'Mutation',
+        createTodo: {
+          __typename: 'Todo',
+          id: '101',
+          text: 'Second created with mutation.',
+          completed: true,
+        },
+      },
+    };
+
+    const secondOptimisticResponse = {
+      __typename: 'Mutation',
+      createTodo: {
+        __typename: 'Todo',
+        id: '101',
+        text: 'Second optimistical generated',
+        completed: true,
+      },
+    };
+
+    it('Doesn\'t leave the client in an invalid state', () => {
+      return setup({
+        request: { query: mutation },
+        result: firstMutationResult,
+        delay: 0
+      },{
+        request: { query: mutation },
+        result: secondMutationResult,
+        delay: 100
+      })
+      .then(() => {
+        const dataId = client.dataId({
+          __typename: 'TodoList',
+          id: '5',
+        });
+        client.mutate({
+          mutation,
+          optimisticResponse: firstOptimisticResponse,
+          resultBehaviors: [
+            {
+              type: 'ARRAY_INSERT',
+              resultPath: [ 'createTodo' ],
+              storePath: [ dataId, 'todos' ],
+              where: 'PREPEND',
+            },
+          ],
+        });
+        client.mutate({
+          mutation,
+          optimisticResponse: secondOptimisticResponse,
+          resultBehaviors: [
+            {
+              type: 'ARRAY_INSERT',
+              resultPath: [ 'createTodo' ],
+              storePath: [ dataId, 'todos' ],
+              where: 'PREPEND',
+            },
+          ],
+        });
+
+        const dataInStore = client.queryManager.getDataWithOptimisticResults();
+        // Fails here because only the second optimistic update is in the store.
+        // console.log(dataInStore);
+        assert.equal((dataInStore['Todo99'] as any).text, 'First optimistical generation');
+        assert.equal((dataInStore['Todo101'] as any).text, 'Second optimistical generation');
+      }).then(() => {
+        return client.query({ query });
+      })
+      .then((newResult: any) => {
+        // Two new todo items
+        assert.equal(newResult.data.todoList.todos.length, 5);
+        // Most recent prepended to front, second most recent added to back.
+        assert.equal(newResult.data.todoList.todos[1].text, 'First created with mutation.');
+        assert.equal(newResult.data.todoList.todos[0].text, 'Second created with mutation.');
+      });
+    });
+  });
 });
