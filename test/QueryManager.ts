@@ -2734,6 +2734,47 @@ describe('QueryManager', () => {
   });
 });
 
+describe('Custom Query IDs', () => {
+  function getQueryNameFromWatchQueryOptions(options: WatchQueryOptions) {
+    const firstDefintion = <any>options.query.definitions[0];
+    return firstDefintion.selectionSet.selections[0].name.value;
+  }
+  function queryIdFromQueryName(queryOptions?: WatchQueryOptions) {
+    return getQueryNameFromWatchQueryOptions(queryOptions);
+  }
+  it('Can use a custom function to generate QueryIDs', () => {
+    const query1 = gql`
+      {
+        people_one(id: 1) {
+          name
+        }
+      }
+    `;
+
+    const networkInterface = mockNetworkInterface();
+
+    const queryManager = new QueryManager({
+      networkInterface,
+      store: createApolloStore(),
+      reduxRootKey: 'apollo',
+      queryIdFromArguments: queryIdFromQueryName,
+    });
+
+    const watchQueryOptions = {
+      query: query1,
+    };
+    const handle1 = queryManager.watchQuery(watchQueryOptions);
+
+    // Typscript funkyness.
+    const handle = handle1 as any;
+    const generatedQueryId = queryIdFromQueryName(watchQueryOptions);
+
+    // Test to ensure that the function we built is the function
+    // being called.
+    assert.equal(handle.queryId, generatedQueryId);
+  });
+});
+
 function testDiffing(
   queryArray: {
     // The query the UI asks for

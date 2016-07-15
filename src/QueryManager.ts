@@ -80,6 +80,10 @@ import {
   ApolloError,
 } from './errors';
 
+import {
+  IdGetter,
+} from './data/extensions';
+
 export interface WatchQueryOptions {
   query: Document;
   variables?: { [key: string]: any };
@@ -89,6 +93,8 @@ export interface WatchQueryOptions {
   pollInterval?: number;
   fragments?: FragmentDefinition[];
 }
+
+export type queryIdFromArguments = (queryArguments?: WatchQueryOptions) => string;
 
 export class ObservableQuery extends Observable<ApolloQueryResult> {
   public refetch: (variables?: any) => Promise<ApolloQueryResult>;
@@ -108,7 +114,7 @@ export class ObservableQuery extends Observable<ApolloQueryResult> {
     shouldSubscribe?: boolean,
   }) {
 
-    const queryId = queryManager.generateQueryId();
+    const queryId = queryManager.generateQueryId(options);
     const subscriberFunction = (observer: Observer<ApolloQueryResult>) => {
       const retQuerySubscription = {
         unsubscribe: () => {
@@ -187,6 +193,7 @@ export type QueryListener = (queryStoreValue: QueryStoreValue) => void;
 
 export class QueryManager {
   public pollingTimers: {[queryId: string]: NodeJS.Timer | any}; //oddity in Typescript
+  public generateQueryId: Function;
   private networkInterface: NetworkInterface;
   private store: ApolloStore;
   private reduxRootKey: string;
@@ -224,6 +231,7 @@ export class QueryManager {
     queryTransformer,
     shouldBatch = false,
     batchInterval = 10,
+    queryIdFromArguments,
   }: {
     networkInterface: NetworkInterface,
     store: ApolloStore,
@@ -231,6 +239,7 @@ export class QueryManager {
     queryTransformer?: QueryTransformer,
     shouldBatch?: Boolean,
     batchInterval?: number,
+    queryIdFromArguments?: queryIdFromArguments,
   }) {
     // XXX this might be the place to do introspection for inserting the `id` into the query? or
     // is that the network interface?
@@ -241,6 +250,7 @@ export class QueryManager {
     this.pollingTimers = {};
     this.batchInterval = batchInterval;
     this.queryListeners = {};
+    this.generateQueryId = queryIdFromArguments || this.generateQueryIdFromCounter;
 
     this.scheduler = new QueryScheduler({
       queryManager: this,
@@ -289,7 +299,7 @@ export class QueryManager {
     fragments?: FragmentDefinition[],
     optimisticResponse?: Object,
   }): Promise<ApolloQueryResult> {
-    const mutationId = this.generateQueryId();
+    const mutationId = this.generateQueryIdFromCounter();
 
     let mutationDef = getMutationDefinition(mutation);
     if (this.queryTransformer) {
@@ -447,7 +457,7 @@ export class QueryManager {
     return this.fetchQueryOverInterface(queryId, options, this.networkInterface);
   }
 
-  public generateQueryId() {
+  public generateQueryIdFromCounter() {
     const queryId = this.idCounter.toString();
     this.idCounter++;
     return queryId;
@@ -783,4 +793,8 @@ export class QueryManager {
     this.idCounter++;
     return requestId;
   }
+}
+
+export interface QueryManagerConfig {
+  queryIdFromArguments?: IdGetter;
 }
