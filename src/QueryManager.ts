@@ -80,10 +80,6 @@ import {
   ApolloError,
 } from './errors';
 
-import {
-  IdGetter,
-} from './data/extensions';
-
 export interface WatchQueryOptions {
   query: Document;
   variables?: { [key: string]: any };
@@ -803,8 +799,4 @@ export class QueryManager {
     this.idCounter++;
     return requestId;
   }
-}
-
-export interface QueryManagerConfig {
-  queryIdFromArguments?: IdGetter;
 }

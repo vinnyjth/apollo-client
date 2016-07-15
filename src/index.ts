@@ -24,6 +24,7 @@ import {
   QueryManager,
   WatchQueryOptions,
   ObservableQuery,
+  queryIdFromArguments,
 } from './QueryManager';
 
 import {
@@ -151,7 +152,7 @@ export default class ApolloClient {
   public dataId: IdGetter;
   public fieldWithArgs: (fieldName: string, args?: Object) => string;
   public batchInterval: number;
-  public queryIdFromArguments: IdGetter;
+  public queryIdFromArguments: queryIdFromArguments;
 
   constructor({
     networkInterface,
@@ -170,7 +171,7 @@ export default class ApolloClient {
     reduxRootKey?: string,
     initialState?: any,
     dataIdFromObject?: IdGetter,
-    queryIdFromArguments?: IdGetter,
+    queryIdFromArguments?: queryIdFromArguments,
     queryTransformer?: QueryTransformer,
     shouldBatch?: boolean,
     ssrMode?: boolean,
