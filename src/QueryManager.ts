@@ -193,7 +193,7 @@ export type QueryListener = (queryStoreValue: QueryStoreValue) => void;
 
 export class QueryManager {
   public pollingTimers: {[queryId: string]: NodeJS.Timer | any}; //oddity in Typescript
-  public generateQueryId: Function;
+  public customGenerateQueryId: Function;
   private networkInterface: NetworkInterface;
   private store: ApolloStore;
   private reduxRootKey: string;
@@ -250,7 +250,7 @@ export class QueryManager {
     this.pollingTimers = {};
     this.batchInterval = batchInterval;
     this.queryListeners = {};
-    this.generateQueryId = queryIdFromArguments || this.generateQueryIdFromCounter;
+    this.customGenerateQueryId = queryIdFromArguments;
 
     this.scheduler = new QueryScheduler({
       queryManager: this,
@@ -461,6 +461,16 @@ export class QueryManager {
     const queryId = this.idCounter.toString();
     this.idCounter++;
     return queryId;
+  }
+
+  public generateQueryId(options?: WatchQueryOptions) {
+    const newId = this.customGenerateQueryId ? this.customGenerateQueryId(options) : null;
+    // If the custom function generated an id, use it.
+    if (typeof newId === 'string') {
+      return newId;
+    }
+    // Otherwise use the default method.
+    return this.generateQueryIdFromCounter();
   }
 
   public stopQueryInStore(queryId: string) {

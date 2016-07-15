@@ -2742,15 +2742,15 @@ describe('Custom Query IDs', () => {
   function queryIdFromQueryName(queryOptions?: WatchQueryOptions) {
     return getQueryNameFromWatchQueryOptions(queryOptions);
   }
-  it('Can use a custom function to generate QueryIDs', () => {
-    const query1 = gql`
-      {
-        people_one(id: 1) {
-          name
-        }
-      }
-    `;
 
+  const query1 = gql`
+    {
+      people_one(id: 1) {
+        name
+      }
+    }
+  `;
+  it('Can use a custom function to generate QueryIDs', () => {
     const networkInterface = mockNetworkInterface();
 
     const queryManager = new QueryManager({
@@ -2772,6 +2772,26 @@ describe('Custom Query IDs', () => {
     // Test to ensure that the function we built is the function
     // being called.
     assert.equal(handle.queryId, generatedQueryId);
+  });
+  it('will fall back to numeric ids if the custom functions doesn\'t return', () => {
+    const networkInterface = mockNetworkInterface();
+
+    const queryManager = new QueryManager({
+      networkInterface,
+      store: createApolloStore(),
+      reduxRootKey: 'apollo',
+      queryIdFromArguments: () => { return null; },
+    });
+
+    const watchQueryOptions = {
+      query: query1,
+    };
+    const handle1 = queryManager.watchQuery(watchQueryOptions);
+
+    // Typscript funkyness.
+    const handle = handle1 as any;
+
+    assert.equal(handle.queryId, '0');
   });
 });
 
